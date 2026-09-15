@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>거지맵 🇹🇭 태국판</title>
+<style>
+:root {
+  --orange: #FF5C00;
+  --orange-light: #FFF0E8;
+  --orange-mid: #FF8C42;
+  --green: #10B981;
+  --green-light: #D1FAE5;
+  --red: #EF4444;
+  --bg: #F5F4F0;
+  --card: #FFFFFF;
+  --border: #EEEEEE;
+  --text: #111111;
+  --muted: #9CA3AF;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans KR', -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+.app { max-width: 600px; margin: 0 auto; min-height: 100vh; }
+
+/* ── NAV ── */
+.nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; background: #fff;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+}
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo-icon { width: 34px; height: 34px; background: var(--orange); border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.logo-text { font-size: 18px; font-weight: 800; color: var(--orange); }
+.logo-sub { font-size: 10px; color: var(--muted); font-weight: 400; }
+.nav-tabs { display: flex; gap: 6px; }
+.nav-tab {
+  padding: 6px 12px; border-radius: 20px; border: 1.5px solid var(--border);
+  background: #fff; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s;
+}
+.nav-tab.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+
+/* ── HERO ── */
+.hero { padding: 20px 14px 10px; }
+.hero h1 { font-size: 24px; font-weight: 800; }
+.hero p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.hero-accent { color: var(--orange); }
+
+/* ── FILTER BAR ── */
+.filter-bar {
+  display: flex; gap: 8px; padding: 10px 14px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.filter-bar::-webkit-scrollbar { display: none; }
+.filter-btn {
+  flex-shrink: 0; padding: 6px 14px; border-radius: 20px;
+  border: 1.5px solid var(--border); background: #fff;
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: all .2s;
+}
+.filter-btn.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+
+/* ── REGION BAR ── */
+.region-bar {
+  display: flex; gap: 6px; padding: 0 14px 10px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.region-bar::-webkit-scrollbar { display: none; }
+.region-btn {
+  flex-shrink: 0; padding: 5px 12px; border-radius: 14px;
+  border: 1px solid var(--border); background: #fff;
+  font-size: 12px; cursor: pointer; transition: all .2s;
+}
+.region-btn.active { background: #111; color: #fff; border-color: #111; }
+
+/* ── CARDS ── */
+.list { padding: 0 14px 80px; display: flex; flex-direction: column; gap: 12px; }
+.card {
+  background: var(--card); border-radius: 16px;
+  padding: 14px; box-shadow: var(--shadow);
+  cursor: pointer; transition: transform .15s;
+}
+.card:hover { transform: translateY(-2px); }
+.card-header { display: flex; align-items: flex-start; gap: 10px; }
+.card-icon { font-size: 32px; }
+.card-info { flex: 1; }
+.card-name { font-size: 15px; font-weight: 700; }
+.card-addr { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.card-price { font-size: 20px; font-weight: 800; color: var(--orange); }
+.card-price-label { font-size: 11px; color: var(--muted); }
+.card-menu { font-size: 12px; color: #555; margin-top: 8px; background: var(--bg); padding: 8px 10px; border-radius: 8px; }
+.card-footer { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.badge { padding: 3px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+.badge-hot { background: #FEF2F2; color: #EF4444; }
+.badge-green { background: var(--green-light); color: var(--green); }
+.card-star { font-size: 12px; color: #F59E0B; margin-left: auto; }
+.card-open { font-size: 11px; color: var(--muted); }
+
+/* ── REPORT FORM ── */
+.report-btn {
+  position: fixed; bottom: 20px; right: 16px;
+  width: 54px; height: 54px; border-radius: 27px;
+  background: var(--orange); border: none; color: #fff;
+  font-size: 24px; box-shadow: 0 4px 16px rgba(255,92,0,.4);
+  cursor: pointer; z-index: 200; transition: transform .2s;
+}
+.report-btn:hover { transform: scale(1.05); }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5);
+  z-index: 300; display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.modal-overlay.show { opacity: 1; pointer-events: all; }
+.modal {
+  background: #fff; border-radius: 24px 24px 0 0;
+  padding: 20px; width: 100%; max-width: 600px; margin: 0 auto;
+  transform: translateY(100%); transition: transform .3s;
+}
+.modal-overlay.show .modal { transform: translateY(0); }
+.modal-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+.form-group { margin-bottom: 12px; }
+.form-label { font-size: 12px; font-weight: 600; color: #555; margin-bottom: 4px; display: block; }
+.form-input {
+  width: 100%; padding: 10px 12px; border-radius: 10px;
+  border: 1.5px solid var(--border); font-size: 14px; outline: none;
+  transition: border-color .2s;
+}
+.form-input:focus { border-color: var(--orange); }
+.form-select { appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat right 12px center; }
+.btn-primary {
+  width: 100%; padding: 13px; border-radius: 12px;
+  background: var(--orange); color: #fff; border: none;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.btn-close {
+  width: 100%; padding: 11px; border-radius: 12px;
+  background: var(--bg); color: #666; border: none;
+  font-size: 14px; cursor: pointer; margin-top: 6px;
+}
+
+/* ── VIEWS ── */
+.main-view, .admin-view { display: none; }
+.main-view.show, .admin-view.show { display: block; }
+
+/* ── ADMIN ── */
+.admin-header {
+  background: #111; color: #fff; padding: 16px 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.admin-header h2 { font-size: 16px; font-weight: 800; }
+.admin-header p { font-size: 11px; color: #aaa; margin-top: 2px; }
+.admin-nav {
+  display: flex; gap: 0; background: #fff;
+  border-bottom: 2px solid var(--border); overflow-x: auto;
+}
+.admin-nav::-webkit-scrollbar { display: none; }
+.admin-tab {
+  flex-shrink: 0; padding: 12px 16px; border: none; background: none;
+  font-size: 13px; font-weight: 600; color: var(--muted);
+  cursor: pointer; border-bottom: 2px solid transparent;
+  margin-bottom: -2px; transition: all .2s;
+}
+.admin-tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+.admin-section { display: none; padding: 14px; }
+.admin-section.show { display: block; }
+
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.stat-card {
+  background: #fff; border-radius: 14px; padding: 14px;
+  box-shadow: var(--shadow);
+}
+.stat-label { font-size: 11px; color: var(--muted); font-weight: 600; }
+.stat-value { font-size: 26px; font-weight: 800; margin-top: 2px; }
+.stat-change { font-size: 11px; margin-top: 2px; }
+.stat-change.up { color: var(--green); }
+.stat-change.dn { color: var(--red); }
+
+.bar-chart { background: #fff; border-radius: 14px; padding: 14px; box-shadow: var(--shadow); }
+.bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.bar-label { width: 80px; font-size: 11px; color: var(--muted); text-align: right; flex-shrink: 0; }
+.bar-track { flex: 1; background: #F3F4F6; border-radius: 4px; height: 16px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--orange); border-radius: 4px; display: flex; align-items: center; padding-left: 6px; font-size: 10px; color: #fff; font-weight: 700; transition: width .6s; }
+.bar-count { width: 28px; font-size: 11px; font-weight: 700; color: #374151; }
+
+.a-table-wrap { overflow-x: auto; }
+.a-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.a-table th { padding: 8px 10px; background: #F9FAFB; text-align: left; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+.a-table td { padding: 10px; border-bottom: 1px solid #F3F4F6; }
+.a-table tr:last-child td { border-bottom: none; }
+
+.search-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.search-input { flex: 1; padding: 9px 12px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 13px; outline: none; }
+.search-input:focus { border-color: var(--orange); }
+.a-select { padding: 9px 12px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 13px; outline: none; }
+
+.a-card { background: #fff; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; box-shadow: var(--shadow); }
+.a-card-header { display: flex; align-items: center; justify-content: space-between; }
+.a-card-name { font-size: 14px; font-weight: 700; }
+.a-card-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.a-actions { display: flex; gap: 6px; }
+.btn-approve { padding: 5px 10px; border-radius: 8px; background: var(--green-light); color: var(--green); border: none; font-size: 12px; font-weight: 700; cursor: pointer; }
+.btn-reject { padding: 5px 10px; border-radius: 8px; background: #FEF2F2; color: var(--red); border: none; font-size: 12px; font-weight: 700; cursor: pointer; }
+.btn-edit { padding: 5px 10px; border-radius: 8px; background: var(--orange-light); color: var(--orange); border: none; font-size: 12px; font-weight: 700; cursor: pointer; }
+.btn-delete { padding: 5px 10px; border-radius: 8px; background: #F3F4F6; color: #666; border: none; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+.status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+.status-dot.active { background: var(--green); }
+.status-dot.pending { background: #F59E0B; }
+.status-dot.rejected { background: var(--red); }
+
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: #111; color: #fff; padding: 10px 20px;
+  border-radius: 24px; font-size: 13px; font-weight: 600;
+  opacity: 0; transition: all .3s; z-index: 400; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="logo">
+    <div class="logo-icon">📍</div>
+    <div>
+      <div class="logo-text">거지맵 🇹🇭</div>
+      <div class="logo-sub">태국 전 지역 극가성비 식당</div>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchView('main')">🏠 맵</button>
+    <button class="nav-tab" onclick="switchView('admin')">⚙️ 어드민</button>
+  </div>
+</nav>
+
+<!-- ───── MAIN VIEW ───── -->
+<div class="main-view show" id="main-view">
+  <div class="hero">
+    <h1>🇹🇭 <span class="hero-accent">태국</span> 거지맵</h1>
+    <p>싸고 맛있는 태국 맛집을 공유해요 💸</p>
+  </div>
+  <div class="filter-bar" id="cat-bar"></div>
+  <div class="region-bar" id="region-bar"></div>
+  <div class="list" id="card-list"></div>
+</div>
+
+<!-- ───── ADMIN VIEW ───── -->
+<div class="admin-view" id="admin-view">
+  <div class="admin-header">
+    <div style="font-size:28px">⚙️</div>
+    <div>
+      <h2>거지맵 어드민 패널</h2>
+      <p>맛집 데이터 및 제보 관리</p>
+    </div>
+  </div>
+  <div class="admin-nav">
+    <button class="admin-tab active" onclick="adminTab('dashboard')">📊 대시보드</button>
+    <button class="admin-tab" onclick="adminTab('restaurants')">🍜 맛집 관리</button>
+    <button class="admin-tab" onclick="adminTab('approvals')">⏳ 승인 대기 <span id="pending-badge"></span></button>
+    <button class="admin-tab" onclick="adminTab('add')">➕ 맛집 추가</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="admin-section show" id="sec-dashboard">
+    <div class="stats-grid" id="stat-cards"></div>
+    <div style="margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px">카테고리별 등록 현황</div>
+      <div class="bar-chart" id="bar-chart"></div>
+    </div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:8px">최근 등록 맛집</div>
+    <div class="a-table-wrap">
+      <table class="a-table">
+        <thead><tr><th>맛집명</th><th>카테고리</th><th>지역</th><th>가격</th><th>상태</th></tr></thead>
+        <tbody id="recent-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RESTAURANTS -->
+  <div class="admin-section" id="sec-restaurants">
+    <div class="search-row">
+      <input class="search-input" id="a-search" placeholder="🔍 맛집명 검색..." oninput="renderAdminList()">
+      <select class="a-select" id="a-filter-cat" onchange="renderAdminList()">
+        <option value="">전체</option>
+      </select>
+    </div>
+    <div id="admin-list"></div>
+  </div>
+
+  <!-- APPROVALS -->
+  <div class="admin-section" id="sec-approvals">
+    <div id="approval-list"></div>
+  </div>
+
+  <!-- ADD -->
+  <div class="admin-section" id="sec-add">
+    <div style="background:#fff;border-radius:16px;padding:16px;box-shadow:var(--shadow)">
+      <div class="form-group">
+        <label class="form-label">맛집 이름 *</label>
+        <input class="form-input" id="add-name" placeholder="예: 쏨땀 수완">
+      </div>
+      <div class="form-group">
+        <label class="form-label">카테고리 *</label>
+        <select class="form-input form-select" id="add-cat"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">지역 *</label>
+        <select class="form-input form-select" id="add-region">
+          <option>방콕</option><option>파타야</option><option>푸껫</option><option>치앙마이</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">대표 가격 (฿) *</label>
+        <input class="form-input" id="add-price" type="number" placeholder="예: 80">
+      </div>
+      <div class="form-group">
+        <label class="form-label">주소</label>
+        <input class="form-input" id="add-addr" placeholder="예: 방콕 실롬">
+      </div>
+      <div class="form-group">
+        <label class="form-label">메뉴 정보</label>
+        <input class="form-input" id="add-menu" placeholder="예: 꾸어이띠아우 ฿50 / 토핑 +฿10">
+      </div>
+      <div class="form-group">
+        <label class="form-label">설명</label>
+        <input class="form-input" id="add-desc" placeholder="예: 30년 전통. 현금만 가능.">
+      </div>
+      <button class="btn-primary" onclick="addRestaurant()">✅ 맛집 등록하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT BUTTON (main only) -->
+<button class="report-btn" id="report-btn" onclick="openModal()">+</button>
+
+<!-- REPORT MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">📍 새 맛집 제보</div>
+    <div class="form-group">
+      <label class="form-label">맛집 이름 *</label>
+      <input class="form-input" id="r-name" placeholder="예: 쏨땀 수완">
+    </div>
+    <div class="form-group">
+      <label class="form-label">카테고리 *</label>
+      <select class="form-input form-select" id="r-cat"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">지역</label>
+      <select class="form-input form-select" id="r-region">
+        <option>방콕</option><option>파타야</option><option>푸껫</option><option>치앙마이</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">가격 (฿) *</label>
+      <input class="form-input" id="r-price" type="number" placeholder="예: 80">
+    </div>
+    <div class="form-group">
+      <label class="form-label">주소</label>
+      <input class="form-input" id="r-addr" placeholder="예: 방콕 실롬">
+    </div>
+    <div class="form-group">
+      <label class="form-label">메모</label>
+      <input class="form-input" id="r-memo" placeholder="예: 점심만 영업, 현금 가능">
+    </div>
+    <button class="btn-primary" onclick="submitReport()">제보 보내기 🚀</button>
+    <button class="btn-close" onclick="closeModal()">취소</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ───
+const CATS = ["전체","아한땀쌍","꾸어이디아우","무까타","삥&양","얌&땀","깽","마라","씨푸드","치킨","피자","버거","음료","스테이크","한식","일식"];
+const REGIONS = ["방콕","파타야","푸껫","치앙마이"];
+
+let restaurants = [
+  { id:1,  name:"쏨땀 수완",        icon:"🥗", cat:"얌&땀",      price:60,  menu:"쏨땀 ฿60 / 카오니아우 ฿20",        addr:"방콕 실롬",          star:4.8, cnt:234, hot:true,  region:"방콕",     status:"active",  regDate:"2025-05-01" },
+  { id:2,  name:"끄아이띠아우 반쌍", icon:"🍜", cat:"꾸어이디아우",price:50,  menu:"꾸어이띠아우 ฿50 / 토핑 +฿10",   addr:"방콕 온눗",          star:4.6, cnt:188, hot:true,  region:"방콕",     status:"active",  regDate:"2025-05-02" },
+  { id:3,  name:"무까타 쌈얀",       icon:"🥩", cat:"무까타",     price:199, menu:"무까타 뷔페 ฿199 음료포함",        addr:"방콕 쌈얀",          star:4.5, cnt:156, hot:false, region:"방콕",     status:"active",  regDate:"2025-05-03" },
+  { id:4,  name:"팟타이 왓아룬",     icon:"🍝", cat:"아한땀쌍",   price:70,  menu:"팟타이 ฿70 / 팟씨유 ฿70",         addr:"방콕 왓아룬",        star:4.7, cnt:312, hot:true,  region:"방콕",     status:"active",  regDate:"2025-05-04" },
+  { id:5,  name:"카오만가이 찰리",   icon:"🍗", cat:"아한땀쌍",   price:55,  menu:"카오만가이 ฿55 / 특대 ฿65",       addr:"파타야 센트럴",      star:4.4, cnt:98,  hot:false, region:"파타야",   status:"active",  regDate:"2025-05-05" },
+  { id:6,  name:"라이 씨푸드",       icon:"🦐", cat:"씨푸드",     price:180, menu:"새우볶음 ฿180 / 게 ฿250",         addr:"푸껫 라와이",        star:4.9, cnt:445, hot:true,  region:"푸껫",     status:"active",  regDate:"2025-05-06" },
+  { id:7,  name:"카오쏘이 님만",     icon:"🍲", cat:"깽",         price:65,  menu:"카오쏘이 ฿65 / 추가 면 ฿10",      addr:"치앙마이 님만해민",  star:4.8, cnt:287, hot:true,  region:"치앙마이", status:"active",  regDate:"2025-05-07" },
+  { id:8,  name:"삥가이 야시장",     icon:"🔥", cat:"삥&양",      price:45,  menu:"닭꼬치 ฿45 / 돼지꼬치 ฿40",       addr:"치앙마이 야시장",    star:4.5, cnt:123, hot:false, region:"치앙마이", status:"active",  regDate:"2025-05-08" },
+];
+
+let pendingReports = [
+  { id:101, name:"마라탕 방콕",      icon:"🌶️", cat:"마라",     price:150, menu:"마라탕 ฿150 ~ ฿280",               addr:"방콕 수쿰빗",        star:0,   cnt:0,   hot:false, region:"방콕",   status:"pending", regDate:"2025-05-10", reporter:"익명72" },
+  { id:102, name:"한국 치킨 파타야", icon:"🍗", cat:"치킨",     price:249, menu:"양념치킨 ฿249 / 후라이드 ฿229",     addr:"파타야 나클르아",    star:0,   cnt:0,   hot:false, region:"파타야", status:"pending", regDate:"2025-05-11", reporter:"익명18" },
+  { id:103, name:"쏨땀 치앙마이",    icon:"🥗", cat:"얌&땀",    price:55,  menu:"쏨땀 ฿55",                           addr:"치앙마이 구시가지",  star:0,   cnt:0,   hot:false, region:"치앙마이",status:"pending", regDate:"2025-05-11", reporter:"익명55" },
+];
+
+let currentCat = "전체";
+let currentRegion = "전체";
+
+// ─── INIT ───
+function init() {
+  buildCatBar();
+  buildRegionBar();
+  buildCategorySelects();
+  renderCards();
+  renderDashboard();
+  renderAdminList();
+  renderApprovals();
+  updatePendingBadge();
+}
+
+function buildCatBar() {
+  const bar = document.getElementById('cat-bar');
+  bar.innerHTML = CATS.map(c => `
+    <button class="filter-btn ${c===currentCat?'active':''}" onclick="setCat('${c}')">${c}</button>
+  `).join('');
+}
+
+function buildRegionBar() {
+  const bar = document.getElementById('region-bar');
+  const regions = ["전체", ...REGIONS];
+  bar.innerHTML = regions.map(r => `
+    <button class="region-btn ${r===currentRegion?'active':''}" onclick="setRegion('${r}')">${r}</button>
+  `).join('');
+}
+
+function buildCategorySelects() {
+  const cats = CATS.filter(c => c !== "전체");
+  [document.getElementById('r-cat'), document.getElementById('add-cat'),
+   document.getElementById('a-filter-cat')].forEach(el => {
+    if (!el) return;
+    const opts = el === document.getElementById('a-filter-cat')
+      ? ['<option value="">전체</option>', ...cats.map(c=>`<option>${c}</option>`)]
+      : cats.map(c=>`<option>${c}</option>`);
+    el.innerHTML = opts.join('');
+  });
+}
+
+function setCat(cat) {
+  currentCat = cat;
+  buildCatBar();
+  renderCards();
+}
+
+function setRegion(r) {
+  currentRegion = r;
+  buildRegionBar();
+  renderCards();
+}
+
+function renderCards() {
+  const list = document.getElementById('card-list');
+  const data = restaurants.filter(r => {
+    if (currentCat !== "전체" && r.cat !== currentCat) return false;
+    if (currentRegion !== "전체" && r.region !== currentRegion) return false;
+    return r.status === "active";
+  });
+
+  if (!data.length) {
+    list.innerHTML = `<div class="empty">😅 해당 조건의 맛집이 없어요<br>제보해 주세요!</div>`;
+    return;
+  }
+
+  list.innerHTML = data.map(r => `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">${r.icon}</div>
+        <div class="card-info">
+          <div class="card-name">${r.name}</div>
+          <div class="card-addr">📍 ${r.addr} · ${r.region}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="card-price">฿${r.price}</div>
+          <div class="card-price-label">최저가</div>
+        </div>
+      </div>
+      <div class="card-menu">${r.menu}</div>
+      <div class="card-footer">
+        ${r.hot ? '<span class="badge badge-hot">🔥 HOT</span>' : ''}
+        <span class="badge badge-green">${r.cat}</span>
+        <span class="badge" style="background:#F3F4F6;color:#555">${r.region}</span>
+        <span class="card-star">⭐ ${r.star} (${r.cnt})</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── DASHBOARD ───
+function renderDashboard() {
+  const all = restaurants.filter(r => r.status === "active");
+  const pending = pendingReports.length;
+
+  // Stats
+  const stats = [
+    { label:"총 등록 맛집", value: all.length, change: "+2 이번 주", up: true, color: "var(--orange)" },
+    { label:"승인 대기", value: pending, change: `${pending}건 처리 필요`, up: false, color: "#F59E0B" },
+    { label:"총 제보 수", value: all.length + pendingReports.length, change: "+3 오늘", up: true, color: "var(--green)" },
+    { label:"평균 가격", value: "฿" + Math.round(all.reduce((s,r)=>s+r.price,0)/all.length), change: "바트", up: true, color: "#8B5CF6" },
+  ];
+
+  document.getElementById('stat-cards').innerHTML = stats.map(s => `
+    <div class="stat-card">
+      <div class="stat-label">${s.label}</div>
+      <div class="stat-value" style="color:${s.color}">${s.value}</div>
+      <div class="stat-change ${s.up?'up':'dn'}">${s.up?'▲':'⚠'} ${s.change}</div>
+    </div>
+  `).join('');
+
+  // Bar chart
+  const catCount = {};
+  all.forEach(r => { catCount[r.cat] = (catCount[r.cat]||0) + 1; });
+  const sorted = Object.entries(catCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const max = sorted[0]?.[1] || 1;
+
+  document.getElementById('bar-chart').innerHTML = sorted.map(([cat,cnt]) => `
+    <div class="bar-row">
+      <div class="bar-label">${cat}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${Math.round(cnt/max*100)}%">${cnt}</div>
+      </div>
+      <div class="bar-count">${cnt}</div>
+    </div>
+  `).join('');
+
+  // Recent table
+  document.getElementById('recent-tbody').innerHTML = all.slice(-5).reverse().map(r => `
+    <tr>
+      <td>${r.icon} ${r.name}</td>
+      <td>${r.cat}</td>
+      <td>${r.region}</td>
+      <td style="color:var(--orange);font-weight:700">฿${r.price}</td>
+      <td><span class="status-dot active"></span>활성</td>
+    </tr>
+  `).join('');
+}
+
+// ─── ADMIN LIST ───
+function renderAdminList() {
+  const search = document.getElementById('a-search')?.value.toLowerCase() || '';
+  const cat = document.getElementById('a-filter-cat')?.value || '';
+  const data = restaurants.filter(r =>
+    (!search || r.name.toLowerCase().includes(search)) &&
+    (!cat || r.cat === cat)
+  );
+
+  document.getElementById('admin-list').innerHTML = data.length ? data.map(r => `
+    <div class="a-card">
+      <div class="a-card-header">
+        <div>
+          <div class="a-card-name">${r.icon} ${r.name}</div>
+          <div class="a-card-meta">${r.cat} · ${r.region} · ฿${r.price}</div>
+        </div>
+        <div class="a-actions">
+          <button class="btn-edit" onclick="editRestaurant(${r.id})">수정</button>
+          <button class="btn-delete" onclick="deleteRestaurant(${r.id})">삭제</button>
+        </div>
+      </div>
+    </div>
+  `).join('') : '<div class="empty">검색 결과가 없어요</div>';
+}
+
+// ─── APPROVALS ───
+function renderApprovals() {
+  document.getElementById('approval-list').innerHTML = pendingReports.length ? pendingReports.map(r => `
+    <div class="a-card">
+      <div class="a-card-header">
+        <div>
+          <div class="a-card-name">${r.icon} ${r.name}</div>
+          <div class="a-card-meta">${r.cat} · ${r.region} · ฿${r.price} · 제보: ${r.reporter}</div>
+        </div>
+        <div class="a-actions">
+          <button class="btn-approve" onclick="approve(${r.id})">승인</button>
+          <button class="btn-reject" onclick="reject(${r.id})">거절</button>
+        </div>
+      </div>
+    </div>
+  `).join('') : '<div class="empty">✅ 모든 제보가 처리되었어요!</div>';
+}
+
+function updatePendingBadge() {
+  const badge = document.getElementById('pending-badge');
+  if (badge) badge.textContent = pendingReports.length ? `(${pendingReports.length})` : '';
+}
+
+function approve(id) {
+  const idx = pendingReports.findIndex(r => r.id === id);
+  if (idx === -1) return;
+  const item = { ...pendingReports[idx], status: "active", star: 0, cnt: 0 };
+  restaurants.push(item);
+  pendingReports.splice(idx, 1);
+  renderApprovals();
+  renderDashboard();
+  renderCards();
+  updatePendingBadge();
+  showToast("✅ 승인 완료! 맵에 표시됩니다.");
+}
+
+function reject(id) {
+  const idx = pendingReports.findIndex(r => r.id === id);
+  if (idx === -1) return;
+  pendingReports.splice(idx, 1);
+  renderApprovals();
+  updatePendingBadge();
+  renderDashboard();
+  showToast("❌ 거절 처리되었습니다.");
+}
+
+function deleteRestaurant(id) {
+  if (!confirm("정말 삭제하시겠어요?")) return;
+  restaurants = restaurants.filter(r => r.id !== id);
+  renderAdminList();
+  renderDashboard();
+  renderCards();
+  showToast("🗑️ 삭제되었습니다.");
+}
+
+function editRestaurant(id) {
+  showToast("✏️ 수정 기능 준비 중...");
+}
+
+function addRestaurant() {
+  const name = document.getElementById('add-name').value.trim();
+  const cat  = document.getElementById('add-cat').value;
+  const region = document.getElementById('add-region').value;
+  const price = parseInt(document.getElementById('add-price').value);
+  const addr = document.getElementById('add-addr').value.trim();
+  const menu = document.getElementById('add-menu').value.trim();
+  const desc = document.getElementById('add-desc').value.trim();
+
+  if (!name || !price) { showToast("⚠️ 이름과 가격은 필수예요!"); return; }
+
+  const icons = {"아한땀쌍":"🍽️","꾸어이디아우":"🍜","무까타":"🥩","삥&양":"🔥","얌&땀":"🥗","깽":"🫕","마라":"🌶️","씨푸드":"🦐","치킨":"🍗","피자":"🍕","버거":"🍔","음료":"🥤","스테이크":"🥩","한식":"🇰🇷","일식":"🍱"};
+
+  restaurants.push({
+    id: Date.now(), name, icon: icons[cat]||"🍴", cat, price, menu, addr,
+    region, star: 0, cnt: 0, hot: false, status: "active",
+    regDate: new Date().toISOString().slice(0,10)
+  });
+
+  ['add-name','add-price','add-addr','add-menu','add-desc'].forEach(id => document.getElementById(id).value = '');
+  renderAdminList();
+  renderDashboard();
+  renderCards();
+  showToast("✅ 맛집이 등록되었어요!");
+}
+
+// ─── REPORT MODAL ───
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+
+function submitReport() {
+  const name = document.getElementById('r-name').value.trim();
+  const cat  = document.getElementById('r-cat').value;
+  const region = document.getElementById('r-region').value;
+  const price = parseInt(document.getElementById('r-price').value);
+  const addr = document.getElementById('r-addr').value.trim();
+  const memo = document.getElementById('r-memo').value.trim();
+
+  if (!name || !price) { showToast("⚠️ 이름과 가격을 입력해주세요!"); return; }
+
+  pendingReports.push({
+    id: Date.now(), name, icon:"📍", cat, price, menu: memo, addr,
+    region, star: 0, cnt: 0, hot: false, status: "pending",
+    regDate: new Date().toISOString().slice(0,10),
+    reporter: "익명" + Math.floor(Math.random()*99)
+  });
+
+  closeModal();
+  ['r-name','r-price','r-addr','r-memo'].forEach(id => document.getElementById(id).value = '');
+  updatePendingBadge();
+  showToast("🚀 제보 완료! 검토 후 등록됩니다.");
+}
+
+// ─── VIEW SWITCH ───
+function switchView(v) {
+  document.getElementById('main-view').classList.toggle('show', v==='main');
+  document.getElementById('admin-view').classList.toggle('show', v==='admin');
+  document.getElementById('report-btn').style.display = v==='main' ? 'flex' : 'none';
+  document.querySelectorAll('.nav-tab').forEach((el,i) => el.classList.toggle('active', i===(v==='main'?0:1)));
+}
+
+function adminTab(tab) {
+  document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.admin-section').forEach(el => el.classList.remove('show'));
+  event.target.classList.add('active');
+  document.getElementById('sec-'+tab).classList.add('show');
+  if (tab === 'dashboard') renderDashboard();
+  if (tab === 'restaurants') renderAdminList();
+  if (tab === 'approvals') renderApprovals();
+}
+
+// ─── TOAST ───
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+init();
+</script>
+</div>
+</body>
+</html>
