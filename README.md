@@ -1,0 +1,1 @@
+# geoji-map-thailand
